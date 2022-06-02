@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from src.models.SimpleAutoEncoder import SimpleAutoEncoder
 from src.datasets.ChessPositionsDataset import ChessPositionsDataset
-from src.configs.autoencoder_100 import *
+from src.configs.autoencoder_400 import *
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
