@@ -1,8 +1,14 @@
 import os
+import io
 
 from matplotlib import pyplot as plt
 import pandas as pd
 import torch
+import chess
+import chess.svg
+import cairosvg
+
+from src.utils.data_transform import board_matrix_to_fen
 
 
 def plot_loss(loss_dir):
@@ -30,3 +36,16 @@ def plot_accuracy(csv):
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
     plt.show()
+
+
+def visualise_predictions(target, output):
+    # TODO: improve
+    assert target.shape == output.shape
+    for counter, (x, y) in enumerate(zip(target, output)):
+        x, y = chess.Board(board_matrix_to_fen(x)), chess.Board(board_matrix_to_fen(y))
+        # cairosvg.svg2png(io.BytesIO(chess.svg.board(x)))  # TODO: export png
+        o = chess.svg.board(x)
+        with open(f"board{counter}_x.svg", 'w') as mf:
+            mf.write(str(chess.svg.board(x)))
+        with open(f"board{counter}_y.svg", 'w') as mf:
+            mf.write(str(chess.svg.board(y)))
