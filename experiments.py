@@ -84,7 +84,9 @@ def run(dataset_dir):
                 pbar.update()
                 pbar.set_description(f"Loss: {loss:4.3f}")
             train_losses.append(torch.tensor(file_losses).mean())
-            del dataloader  # Avoid memory leaks
+            # Avoid memory leaks
+            del dataloader
+            del file_losses
         pbar.close()
 
         pbar = tqdm(total=int(len(test_files)*positions_per_file/BATCH_SIZE))
@@ -108,7 +110,9 @@ def run(dataset_dir):
                     correct = (pred == batch).sum()
                     test_correct += correct
                 test_losses.append(torch.tensor(file_losses).mean())
-                del dataloader  # Avoid memory leaks
+                # Avoid memory leaks
+                del dataloader
+                del file_losses
 
         mean_training_loss = train_loss / (len(train_files) * positions_per_file / BATCH_SIZE)
         mean_test_loss = test_loss / (len(test_files) * positions_per_file / BATCH_SIZE)
