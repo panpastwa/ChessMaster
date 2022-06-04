@@ -79,14 +79,11 @@ def run(dataset_dir):
                 loss = loss_function(pred, batch)
                 loss.backward()
                 optimizer.step()
-                train_loss += loss
-                file_losses.append(loss)
+                train_loss += loss.item()
+                file_losses.append(loss.item())
                 pbar.update()
                 pbar.set_description(f"Loss: {loss:4.3f}")
             train_losses.append(torch.tensor(file_losses).mean())
-            # Avoid memory leaks
-            del dataloader
-            del file_losses
         pbar.close()
 
         pbar = tqdm(total=int(len(test_files)*positions_per_file/BATCH_SIZE))
@@ -101,8 +98,8 @@ def run(dataset_dir):
                     y = autoencoder(one_hot_batch)
                     pred = y.reshape(-1, 8, 8, 13)
                     loss = loss_function(pred.permute(0, 3, 1, 2), batch)
-                    test_loss += loss
-                    file_losses.append(loss)
+                    test_loss += loss.item()
+                    file_losses.append(loss.item())
                     pbar.update()
                     pbar.set_description(f"Loss: {loss:4.3f}")
 
@@ -110,9 +107,6 @@ def run(dataset_dir):
                     correct = (pred == batch).sum()
                     test_correct += correct
                 test_losses.append(torch.tensor(file_losses).mean())
-                # Avoid memory leaks
-                del dataloader
-                del file_losses
 
         mean_training_loss = train_loss / (len(train_files) * positions_per_file / BATCH_SIZE)
         mean_test_loss = test_loss / (len(test_files) * positions_per_file / BATCH_SIZE)
