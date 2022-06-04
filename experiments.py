@@ -107,6 +107,7 @@ def run(dataset_dir):
                     correct = (pred == batch).sum()
                     test_correct += correct
                 test_losses.append(torch.tensor(file_losses).mean())
+        pbar.close()
 
         mean_training_loss = train_loss / (len(train_files) * positions_per_file / BATCH_SIZE)
         mean_test_loss = test_loss / (len(test_files) * positions_per_file / BATCH_SIZE)
