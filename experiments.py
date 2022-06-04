@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from src.models.SimpleAutoEncoder import SimpleAutoEncoder
 from src.datasets.ChessPositionsDataset import ChessPositionsDataset
-from src.configs.autoencoder_400 import *
+from src.configs.autoencoder_800 import *
 
 
 def run(dataset_dir):
@@ -65,9 +65,8 @@ def run(dataset_dir):
         train_losses = []
         test_losses = []
 
-        pbar = tqdm(train_files)
-
-        for file in pbar:
+        pbar = tqdm(total=int(len(train_files)*positions_per_file/BATCH_SIZE))
+        for file in train_files:
             dataset = ChessPositionsDataset(file)
             dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
             file_losses = []
@@ -82,13 +81,15 @@ def run(dataset_dir):
                 optimizer.step()
                 train_loss += loss
                 file_losses.append(loss)
+                pbar.update()
                 pbar.set_description(f"Loss: {loss:4.3f}")
             train_losses.append(torch.tensor(file_losses).mean())
+            del dataloader  # Avoid memory leaks
         pbar.close()
 
-        pbar = tqdm(test_files)
+        pbar = tqdm(total=int(len(test_files)*positions_per_file/BATCH_SIZE))
         with torch.no_grad():
-            for file in pbar:
+            for file in test_files:
                 dataset = ChessPositionsDataset(file)
                 dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, num_workers=2)
                 file_losses = []
@@ -100,12 +101,14 @@ def run(dataset_dir):
                     loss = loss_function(pred.permute(0, 3, 1, 2), batch)
                     test_loss += loss
                     file_losses.append(loss)
+                    pbar.update()
                     pbar.set_description(f"Loss: {loss:4.3f}")
 
                     pred = pred.argmax(dim=-1)
                     correct = (pred == batch).sum()
                     test_correct += correct
                 test_losses.append(torch.tensor(file_losses).mean())
+                del dataloader  # Avoid memory leaks
 
         mean_training_loss = train_loss / (len(train_files) * positions_per_file / BATCH_SIZE)
         mean_test_loss = test_loss / (len(test_files) * positions_per_file / BATCH_SIZE)
