@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from src.models.SimpleAutoEncoder import SimpleAutoEncoder
 from src.datasets.ChessPositionsDataset import ChessPositionsDataset
-from src.configs.autoencoder_800 import *
+from src.configs.autoencoder_50 import *
 
 
 def run(dataset_dir):
@@ -19,8 +19,13 @@ def run(dataset_dir):
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
     # Create new run dir
-    last_dir = max(os.listdir("runs"))
-    project_dir = f"runs/{int(last_dir) + 1:03}"
+    if "runs" not in os.listdir("."):
+        os.mkdir("runs")
+        project_dir = os.path.join("runs", "001")
+        os.mkdir(project_dir)
+    else:
+        last_dir = max(os.listdir("runs"))
+        project_dir = os.path.join("runs", f"{int(last_dir) + 1:03}")
     os.mkdir(project_dir)
     os.mkdir(os.path.join(project_dir, "train_losses"))
     os.mkdir(os.path.join(project_dir, "test_losses"))
@@ -32,26 +37,25 @@ def run(dataset_dir):
         logging.FileHandler(os.path.join(project_dir, "run.log"))
     ])
     logging.info(f"Saving results to {project_dir}\n")
-
     logging.info(f"DEVICE: {DEVICE}\n"
                  f"BATCH SIZE: {BATCH_SIZE}\n"
                  f"HIDDEN SIZE: {HIDDEN_SIZE}\n"
                  f"EPOCHS: {EPOCHS}\n"
                  f"LEARNING RATE: {LEARNING_RATE}\n")
 
-    autoencoder = SimpleAutoEncoder(64 * 13, HIDDEN_SIZE).to(DEVICE)
+    # Prepare data
     train_dir = os.path.join(dataset_dir, "train")
     test_dir = os.path.join(dataset_dir, "test")
-
     train_files = [os.path.join(train_dir, file) for file in os.listdir(train_dir)]
     test_files = [os.path.join(test_dir, file) for file in os.listdir(test_dir)]
     positions_per_file = torch.load(train_files[0]).shape[0]
-
     logging.info(f"{len(train_files)} files will be used for training and {len(test_files)} will be used for testing. "
                  f"Each file contain {positions_per_file} postions.\n")
 
+    # Create model, loss function and optimizer
+    autoencoder = SimpleAutoEncoder(64 * 13, HIDDEN_SIZE).to(DEVICE)
     loss_function = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(autoencoder.parameters(), lr=LEARNING_RATE)
+    optimizer = torch.optim.SGD(autoencoder.parameters(), lr=LEARNING_RATE, momentum=0.9)
 
     times, accuracies = [], []
     best_test_loss = None
