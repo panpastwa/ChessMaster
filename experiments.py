@@ -55,7 +55,7 @@ def run(dataset_dir):
     # Create model, loss function and optimizer
     autoencoder = SimpleAutoEncoder(64 * 13, HIDDEN_SIZE).to(DEVICE)
     loss_function = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(autoencoder.parameters(), lr=LEARNING_RATE, momentum=0.9)
+    optimizer = torch.optim.SGD(autoencoder.parameters(), lr=LEARNING_RATE)
 
     times, accuracies = [], []
     best_test_loss = None
