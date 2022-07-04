@@ -1,9 +1,8 @@
 import os
-import io
 
 from matplotlib import pyplot as plt
 import pandas as pd
-import torch
+import numpy as np
 import chess
 import chess.svg
 import cairosvg
@@ -11,31 +10,40 @@ import cairosvg
 from src.utils.data_transform import board_matrix_to_fen
 
 
-def plot_loss(loss_dir):
+def plot_loss(loss_dir, save_path=None):
     files = sorted(os.listdir(loss_dir))
-    losses = torch.tensor([])
+    losses = np.array([])
     for f in files:
-        loss_tensor = torch.load(os.path.join(loss_dir, f))
-        losses = torch.hstack([losses, loss_tensor])
-        print(losses.shape)
-    plt.plot(torch.linspace(0, len(files), losses.shape[0]), losses)
+        epoch_losses = pd.read_csv(os.path.join(loss_dir, f))["train_loss"].to_numpy()
+        losses = np.concatenate((losses, epoch_losses))
+    plt.figure()
+    plt.plot(np.linspace(0, len(files), losses.shape[0]), losses)
     plt.title("Training loss")
-    plt.xticks(range(1, len(files)+1))
+    plt.xticks(range(0, len(files)+1, 5))
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
-    plt.show()
+    if save_path is None:
+        plt.show()
+    else:
+        plt.savefig(save_path)
 
 
-def plot_accuracy(csv):
+def plot_accuracy(csv, save_path=None):
     dataframe = pd.read_csv(csv)
     accuracy = dataframe["accuracy"].to_numpy()
-    plt.bar(range(1, accuracy.shape[0]+1), accuracy)
-    plt.title("Accuracy on test set")
-    plt.xticks(range(1, accuracy.shape[0]+1))
-    plt.ylim((0, 100))
+    pieces_accuracy = dataframe["pieces_accuracy"].to_numpy()
+    plt.figure()
+    plt.plot(range(1, accuracy.shape[0]+1), accuracy, label="Accuracy (overall)")
+    plt.plot(range(1, accuracy.shape[0]+1), pieces_accuracy, label="Accuracy (pieces)")
+    plt.title("Accuracy")
+    plt.xticks([1] + list(range(5, accuracy.shape[0]+1, 5)))
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
-    plt.show()
+    plt.legend()
+    if save_path is None:
+        plt.show()
+    else:
+        plt.savefig(save_path)
 
 
 def visualise_predictions(target, output):
