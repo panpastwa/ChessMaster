@@ -1,8 +1,6 @@
 import torch
 from torch.nn.functional import one_hot
 
-# TODO: fill docstrings
-
 
 PIECES_ENCODING = {
     'p': 1, 'n': 2, 'b': 3, 'r': 4, 'q': 5, 'k': 6,
@@ -13,7 +11,7 @@ PIECES_ENCODING_REVERSE = dict((v, k) for k, v in PIECES_ENCODING.items())
 
 def fen_to_board_matrix(fen_string: str) -> torch.Tensor:
     """
-
+    Prepares board matrix representation based on FEN string
 
     Args:
         fen_string: String with chess position encoded in FEN format
@@ -43,12 +41,13 @@ def fen_to_board_matrix(fen_string: str) -> torch.Tensor:
 
 def board_matrix_to_fen(board_tensor: torch.Tensor) -> str:
     """
-
+    Transform board matrix representation to FEN format
 
     Args:
-        board_tensor:
+        board_tensor: 8x8 matrix containing current board state
 
     Returns:
+        String with chess position encoded in FEN format
 
     """
 
@@ -78,7 +77,7 @@ def board_matrix_to_fen(board_tensor: torch.Tensor) -> str:
 
 def fen_to_one_hot_matrix(fen_string: str) -> torch.Tensor:
     """
-
+    Prepares one-hot representation of position based on FEN string
 
     Args:
         fen_string: String with chess position encoded in FEN format
@@ -95,13 +94,13 @@ def fen_to_one_hot_matrix(fen_string: str) -> torch.Tensor:
 
 def one_hot_matrix_to_fen(board_tensor: torch.Tensor) -> str:
     """
-
+    Transform one-hot representation to FEN format
 
     Args:
         board_tensor: Tensor of shape (8, 8, 13) containing bitboard position representation
 
     Returns:
-        String with encoded position in FEN format
+        String with chess position encoded in FEN format
 
     """
 
@@ -113,6 +112,7 @@ def one_hot_matrix_to_fen(board_tensor: torch.Tensor) -> str:
 
 def fen_to_full_position_tensor(fen_string: str) -> torch.Tensor:
     """
+    Prepares full 1D one-hot representation including castle rights and side to move based on FEN string
 
 
     Args:
@@ -151,12 +151,14 @@ def fen_to_full_position_tensor(fen_string: str) -> torch.Tensor:
 
 def full_position_tensor_to_fen(board_tensor: torch.Tensor) -> str:
     """
+    Transform full 1D one-hot representation to FEN format
 
 
     Args:
-        board_tensor:
+        board_tensor: 1D tensor containing bitboard representation of whole position (including castiling rights and side to move)
 
     Returns:
+        String with chess position encoded in FEN format
 
     """
     assert board_tensor.shape == torch.Size((8*8*13 + 5, ))
