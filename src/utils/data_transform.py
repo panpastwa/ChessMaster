@@ -1,4 +1,5 @@
 import torch
+import chess.pgn
 from torch.nn.functional import one_hot
 
 
@@ -7,6 +8,33 @@ PIECES_ENCODING = {
     'P': 7, 'N': 8, 'B': 9, 'R': 10, 'Q': 11, 'K': 12
 }
 PIECES_ENCODING_REVERSE = dict((v, k) for k, v in PIECES_ENCODING.items())
+
+
+def pgn2fens(pgn: str) -> list:
+    """
+    Transform games from PGN file to list of positions in FEN format
+
+    Args:
+        pgn: Path to PGN file
+
+    Returns:
+        list of FEN strings for each game
+
+    """
+
+    fens = []
+    with open(pgn, encoding='utf-8') as mf:
+        game = chess.pgn.read_game(mf)
+        while game is not None:
+            board = game.board()
+            game_fens = []
+            for move in game.mainline_moves():
+                board.push(move)
+                game_fens.append(board.fen())
+            fens.append(game_fens)
+            game = chess.pgn.read_game(mf)
+
+    return fens
 
 
 def fen_to_board_matrix(fen_string: str) -> torch.Tensor:
