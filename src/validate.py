@@ -6,7 +6,8 @@ from tqdm import tqdm
 from src.datasets.ChessPositionsDataset import ChessPositionsDataset
 
 
-def validate(model, files, batch_size, device, loss_function, positions_per_file, regularization=False):
+def validate(model, files, batch_size, device, loss_function, positions_per_file):
+
     test_loss = torch.tensor([0.0]).to(device)
     total_correct = torch.tensor([0], dtype=torch.long).to(device)
     total_pieces_correct = torch.tensor([0], dtype=torch.long).to(device)
@@ -22,9 +23,6 @@ def validate(model, files, batch_size, device, loss_function, positions_per_file
                 y = model(one_hot_batch)
                 pred = y.reshape(-1, 8, 8, 13)
                 loss = loss_function(pred.permute(0, 3, 1, 2), batch)
-                if regularization:
-                    # TODO: add regularization
-                    pass
                 test_loss += loss
                 pbar.update()
                 pbar.set_description(f"Loss: {loss:4.3f}")

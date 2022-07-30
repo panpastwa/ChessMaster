@@ -7,7 +7,7 @@ import torch
 import pandas as pd
 
 from src.models.SimpleAutoEncoder import SimpleAutoEncoder
-from src.configs.autoencoder_800 import *
+from src.configs.autoencoder_50 import *
 from src.train import train
 from src.validate import validate
 
@@ -63,8 +63,8 @@ def run(dataset_dir):
 
         # Train and validate
         start_time = time.time()
-        train_losses = train(autoencoder, train_files, BATCH_SIZE, DEVICE,
-                             optimizer, loss_function, positions_per_file)
+        train_losses, reg_losses = train(autoencoder, train_files, BATCH_SIZE, DEVICE, optimizer,
+                                         loss_function, positions_per_file, regularization=True)
         test_loss, accuracy, pieces_accuracy = validate(autoencoder, test_files, BATCH_SIZE, DEVICE,
                                                         loss_function, positions_per_file)
         end_time = time.time()
@@ -80,8 +80,13 @@ def run(dataset_dir):
         pd.DataFrame(data=zip(test_losses, accuracies, pieces_accuracies, times),
                      columns=("test_loss", "accuracy", "pieces_accuracy", "time")).\
             to_csv(os.path.join(project_dir, "results.csv"))
-        pd.DataFrame(train_losses, columns=("train_loss", )).\
-            to_csv(os.path.join(project_dir, "train_losses", f"epoch_{epoch+1:02}.csv"))
+
+        if len(reg_losses):
+            pd.DataFrame(data=zip(train_losses, reg_losses), columns=("train_loss", "reg_loss")).\
+                to_csv(os.path.join(project_dir, "train_losses", f"epoch_{epoch+1:02}.csv"))
+        else:
+            pd.DataFrame(train_losses, columns=("train_loss",)).\
+                to_csv(os.path.join(project_dir, "train_losses", f"epoch_{epoch+1:02}.csv"))
 
         # Save best weights for model
         if best_test_loss is None or test_loss < best_test_loss:
